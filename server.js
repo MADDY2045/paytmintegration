@@ -19,7 +19,7 @@ app.get('/',(req,res)=>{
 });
 
 app.post('/createorder',(req,res)=>{
-    //console.log(req.body);
+
     let orderid = shortid.generate();
     var paytmParams = {};
     paytmParams.body = {
@@ -54,61 +54,54 @@ app.post('/createorder',(req,res)=>{
                 data:paytmParams
             };
 
-           axios(options).then(response=>{
-            //console.log(response.data);
-            serverSideResponseHandler('qeKSkx70337520159677',orderid,'xpMcuxkn2uDmuglL');
-           if(response.data.body.resultInfo.resultStatus === 'S'){
-                let data = {
-                    mid:'qeKSkx70337520159677',
-                    orderid:orderid,
-                    txnToken:response.data.body.txnToken
+           axios(options)
+            .then(response=>{
+                serverSideResponseHandler('qeKSkx70337520159677',orderid,'xpMcuxkn2uDmuglL');
+                    if(response.data.body.resultInfo.resultStatus === 'S'){
+                        let data = {
+                            mid:'qeKSkx70337520159677',
+                            orderid:orderid,
+                            txnToken:response.data.body.txnToken
+                        }
+                        res.render('Paymentcheckout',{data});
+                    }else{
+                    res.send({message:"failure",reason:response.data.body.resultInfo.resultMsg})
                 }
-                res.render('Paymentcheckout',{data});
-                //res.send({message:"Success",data:{amount:req.body.amount,name:req.body.name,orderid:orderid}});
-            }else{
-                res.send({message:"failure",reason:response.data.body.resultInfo.resultMsg})
-            }
-        })
-        .catch(err=>console.log(`error in fetching token ${err}`));
+            })
+            .catch(err=>console.log(`error in fetching token ${err}`));
         });
 
 })
 
 app.post('/callback',(req,res)=>{
-    //console.log(`callback response is ${JSON.stringify(req.body,null,2)}`);
-    console.log(`client side response hash :${req.body.CHECKSUMHASH}`);
-    var body = {mid:req.body.MID,orderId:req.body.ORDERID};
+
     var paytmChecksum = req.body.CHECKSUMHASH;
-    console.log(`checksum hash : ${paytmChecksum}`);
     delete req.body.CHECKSUMHASH;
     var isVerifySignature = Paytm.verifySignature(req.body, 'xpMcuxkn2uDmuglL', paytmChecksum);
-    console.log(`isverifysignature : ${isVerifySignature}`);
+
     if (isVerifySignature) {
-        console.log("Checksum Matched");
-        res.send(req.body);
+       res.send(req.body);
     } else {
-	console.log("Checksum Mismatched");
+        res.send("Checksum Mismatch_Something has gone wrong");
     }
     serverSideResponseHandler(req.body.MID,req.body.ORDERID,'xpMcuxkn2uDmuglL');
-   })
+
+});
 
 
 function serverSideResponseHandler(mid,orderid,mkey){
     var paytmParams = {};
     paytmParams.body = {
-        /* Find your MID in your Paytm Dashboard at https://dashboard.paytm.com/next/apikeys */
-        "mid" : mid,
-        /* Enter your order id which needs to be check status for */
-        "orderId" : orderid
+        mid : mid,
+       orderId: orderid
     };
+
     Paytm.generateSignature(JSON.stringify(paytmParams.body), mkey).then(function(checksum){
-        /* head parameters */
+
         paytmParams.head = {
             "signature"	: checksum
         };
-        //console.log(`server side request hash: ${checksum}`);
-
-       var post_data = JSON.stringify(paytmParams);
+        var post_data = JSON.stringify(paytmParams);
 
         var options = {
             url: 'https://securegw-stage.paytm.in/v3/order/status',
@@ -120,11 +113,14 @@ function serverSideResponseHandler(mid,orderid,mkey){
             data:paytmParams
         };
 
-         axios(options)
-        .then(response=>{
-            console.log(`Server side response .......${JSON.stringify(response.data,null,2)}`);
-            //console.log(`server side response hash: ${}`)
-           })
+        axios(options)
+            .then(response=>{
+                if(response.data.body.resultInfo.resultStatus === 'TXN_SUCCESS'){
+                    console.log("Transaction is successful!!");
+                }else{
+                    console.log(`transaction failed_${response.data.body.resultInfo.resultMsg}`)
+                }
+            })
             .catch(err=>console.log(`error in fetching token ${err}`));
         });
 
