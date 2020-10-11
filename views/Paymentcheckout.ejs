@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+</head>
+<body>
+    <h1>
+        <h1>Please do not refresh this page...</h1>
+     </h1>
+     <form method="post" action="https://securegw-stage.paytm.in/theia/api/v1/showPaymentPage?mid=qeKSkx70337520159677&orderId=<%= data.orderid %>" name="paytm">
+        <table border="1">
+           <tbody>
+              <input type="hidden" name="mid" value="<%= data.mid %>">
+              <input type="hidden" name="orderId" value="<%= data.orderid %>">
+              <input type="hidden" name="txnToken" value="<%= data.txnToken %>">
+           </tbody>
+        </table>
+        <script type="text/javascript"> document.paytm.submit(); </script>
+     </form>
+     <h1><%= data.mid %></h1>
+</body>
+</html>
