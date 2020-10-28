@@ -19,14 +19,14 @@ app.get('/',(req,res)=>{
 });
 
 app.post('/createorder',(req,res)=>{
-
-    let orderid = shortid.generate();
+    console.log(`body response is ${JSON.stringify(req.body,null,2)}`);
+    //const orderid = shortid.generate();
     var paytmParams = {};
     paytmParams.body = {
         "requestType"   : "Payment",
         "mid"           : "qeKSkx70337520159677",
         "websiteName"   : "WEBSTAGING",
-        "orderId"       : `${orderid}`,
+        "orderId"       : `${req.body.orderid}`,
         "callbackUrl"   : "http://localhost:7000/callback",
         "txnAmount"     : {
             "value"     : `${req.body.amount}`,
@@ -34,18 +34,16 @@ app.post('/createorder',(req,res)=>{
         },
         "userInfo"      : {
             "custId"    : `${req.body.name}`,
-        },
+            "mobile":"9894948839",
+            "email":"madhavaneee08@gmail.com"
+        }
     };
     Paytm.generateSignature(JSON.stringify(paytmParams.body), "xpMcuxkn2uDmuglL").then(function(checksum){
 
-            paytmParams.head = {
-                "signature"    : checksum
-            };
-
-            var post_data = JSON.stringify(paytmParams);
-
-            var options = {
-                url: `https://securegw-stage.paytm.in/theia/api/v1/initiateTransaction?mid=qeKSkx70337520159677&orderId=${orderid}`,
+            paytmParams.head = {signature: checksum};
+            var post_data = JSON.stringify(paytmParams);
+            var options = {
+                url: `https://securegw-stage.paytm.in/theia/api/v1/initiateTransaction?mid=qeKSkx70337520159677&orderId=${req.body.orderid}`,
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -56,12 +54,15 @@ app.post('/createorder',(req,res)=>{
 
            axios(options)
             .then(response=>{
-                serverSideResponseHandler('qeKSkx70337520159677',orderid,'xpMcuxkn2uDmuglL');
+                //serverSideResponseHandler('qeKSkx70337520159677',orderid,'xpMcuxkn2uDmuglL');
+                console.log(`response data is ${JSON.stringify(response.data,null,2)}`);
                     if(response.data.body.resultInfo.resultStatus === 'S'){
                         let data = {
                             mid:'qeKSkx70337520159677',
-                            orderid:orderid,
-                            txnToken:response.data.body.txnToken
+                            orderid: paytmParams.body.orderId,
+                            txnToken:response.data.body.txnToken,
+                            amount:req.body.amount,
+                            customername:req.body.name
                         }
                         res.render('Paymentcheckout',{data});
                     }else{
@@ -74,18 +75,17 @@ app.post('/createorder',(req,res)=>{
 })
 
 app.post('/callback',(req,res)=>{
-
+    console.log(`call back url response is ${JSON.stringify(req.body,null,2)}`);
     var paytmChecksum = req.body.CHECKSUMHASH;
     delete req.body.CHECKSUMHASH;
     var isVerifySignature = Paytm.verifySignature(req.body, 'xpMcuxkn2uDmuglL', paytmChecksum);
 
     if (isVerifySignature) {
-       res.send(req.body);
-    } else {
+        serverSideResponseHandler(req.body.MID,req.body.ORDERID,'xpMcuxkn2uDmuglL');
+        res.send(req.body);
+        } else {
         res.send("Checksum Mismatch_Something has gone wrong");
     }
-    serverSideResponseHandler(req.body.MID,req.body.ORDERID,'xpMcuxkn2uDmuglL');
-
 });
 
 
@@ -96,11 +96,9 @@ function serverSideResponseHandler(mid,orderid,mkey){
        orderId: orderid
     };
 
-    Paytm.generateSignature(JSON.stringify(paytmParams.body), mkey).then(function(checksum){
+    Paytm.generateSignature(JSON.stringify(paytmParams.body), mkey).then(async function(checksum){
 
-        paytmParams.head = {
-            "signature"	: checksum
-        };
+        paytmParams.head = {signature:checksum};
         var post_data = JSON.stringify(paytmParams);
 
         var options = {
@@ -113,15 +111,19 @@ function serverSideResponseHandler(mid,orderid,mkey){
             data:paytmParams
         };
 
-        axios(options)
+       axios(options)
             .then(response=>{
+                console.log(`s2s response ${JSON.stringify(response.data,null,2)}`);
                 if(response.data.body.resultInfo.resultStatus === 'TXN_SUCCESS'){
                     console.log("Transaction is successful!!");
                 }else{
-                    console.log(`transaction failed_${response.data.body.resultInfo.resultMsg}`)
+                    console.log(`transaction failed_${response.data.body.resultInfo.resultMsg}`);
                 }
             })
-            .catch(err=>console.log(`error in fetching token ${err}`));
+            .catch(err=>{
+                console.log(`error in fetching token ${err}`);
+                return 'failure'
+            });
         });
 
     }

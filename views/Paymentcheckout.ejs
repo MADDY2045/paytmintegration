@@ -1,24 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout</title>
-</head>
-<body>
-    <h1>
-        <h1>Please do not refresh this page...</h1>
-     </h1>
-     <form method="post" action="https://securegw-stage.paytm.in/theia/api/v1/showPaymentPage?mid=qeKSkx70337520159677&orderId=<%= data.orderid %>" name="paytm">
-        <table border="1">
-           <tbody>
-              <input type="hidden" name="mid" value="<%= data.mid %>">
-              <input type="hidden" name="orderId" value="<%= data.orderid %>">
-              <input type="hidden" name="txnToken" value="<%= data.txnToken %>">
-           </tbody>
-        </table>
-        <script type="text/javascript"> document.paytm.submit(); </script>
-     </form>
-     <h1><%= data.mid %></h1>
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Payment</title>
+        <meta name="robots" content="noindex">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700"/>
+        <style>
+         body{
+            background-color: #696969;
+         }
+         #paymentbutton{
+            font-family: open Sans!important;
+            font-weight: bold!important;
+            width: 163px!important;
+            position: relative;
+            top:270px;
+            padding: 20px;
+            left:330px;
+            background: #3CCC54!important;
+            border-radius: 10px;
+            cursor: pointer!important;
+            outline: none!important;
+         }
+
+         #card{
+            min-height: 500px;
+            min-width: 300px;
+            background-color: white;
+            margin: 150px auto;
+            width:50%;
+            border-radius: 10px;
+         }
+         .details{
+            position: relative;
+            top:180px;
+            left:350px;
+         }
+      </style>
+    </head>
+    <body >
+           <div class="container">
+               <div class="row card" id="card">
+                  <div class="details">
+                     <h3>Payment Details</h3>
+                     <p>Customer: <%= data.customername %></p>
+                     <p>Amount: <%= data.amount %></p>
+                     <!-- <p>Orderid: <%= data.orderid %></p> -->
+                  </div>
+
+                  <form method="post" action="https://securegw-stage.paytm.in/theia/api/v1/showPaymentPage?mid=qeKSkx70337520159677&orderId=<%= data.orderid %>" name="paytm">
+                     <input type="hidden" name="mid" value="<%= data.mid %>">
+                     <input type="hidden" name="orderId" value="<%= data.orderid %>">
+                     <input type="hidden" name="txnToken" value="<%= data.txnToken %>">
+                     <button type="submit" id="paymentbutton">Pay</button>
+                  </form>
+               </div>
+           </div>
+    </body>
 </html>

@@ -8,10 +8,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <title>Home Page</title>
+    <style>
+      .card{
+          padding: 40px;
+          position: relative;
+          top:200px;
+          left:200px;
+          background-color: #c5c6c6;
+      }
+      button{
+        margin: 10px 0px 0px auto;
+
+      }
+    </style>
 </head>
+
 <body>
     <div class="container mt-5">
-        <div class="row col-md-6 ml-5">
+        <div class="row col-md-6 ml-5 card">
             <form action="http://localhost:7000/createorder" method="post">
                 <div class="form-group">
                   <label>Name</label>
@@ -21,12 +35,21 @@
                   <label>Amount</label>
                   <input type="number" class="form-control" id="number" name="amount" placeholder="Amount" required>
                 </div>
-
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <div class="form-group">
+                  <input type="hidden" class="form-control" id="orderid" name="orderid" >
+                </div>
+                <button id = 'button' type="submit" class="btn btn-primary">Submit</button>
               </form>
         </div>
 
     </div>
-
+<script>
+   window.onload = ()=>{
+     console.log('document loaded');
+     var num = Math.floor(Math.random() * 90000) + 10000;
+     console.log(`num is ${num}`);
+     document.getElementById("orderid").value = num;
+   }
+</script>
 </body>
 </html>
